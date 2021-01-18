@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<idea-plugin>
+
+    <id>org.intellij.bsp</id>
+    <name>Build Server Protocol</name>
+    <description>
+        <![CDATA[
+        Support for the Build Server Protocol (BSP).
+        Allows importing projects from build tools that implement a BSP server.
+      ]]>
+    </description>
+    <version>VERSION</version>
+    <vendor url="https://www.jetbrains.com">JetBrains</vendor>
+    <idea-version since-build="203.5981.41" until-build="211.*"/>
+    <depends>com.intellij.modules.java</depends>
+    <depends optional="true" config-file="BSP-JUnit.xml">JUnit</depends>
+
+    <extensionPoints>
+        <extensionPoint qualifiedName="com.intellij.bspEnvironmentRunnerExtension"
+                        interface="org.jetbrains.plugins.bsp.project.test.environment.BspEnvironmentRunnerExtension"
+                        dynamic="true"/>
+        <extensionPoint qualifiedName="com.intellij.bspResolverNamingExtension"
+                        interface="org.jetbrains.plugins.bsp.project.importing.BspResolverNamingExtension"
+                        dynamic="true"/>
+    </extensionPoints>
+
+<!--    <extensions defaultExtensionNs="org.intellij.scala">-->
+<!--        <worksheetCompilerExtension implementation="org.jetbrains.plugins.bsp.project.test.environment.BspWorksheetCompilerExtension"/>-->
+<!--    </extensions>-->
+
+    <extensions defaultExtensionNs="com.intellij">
+<!--        <bspEnvironmentRunnerExtension implementation="org.jetbrains.plugins.bsp.project.test.environment.BspEnvironmentScalaTestRunnerExtension"/>-->
+        <bspEnvironmentRunnerExtension implementation="org.jetbrains.plugins.bsp.project.test.environment.BspEnvironmentApplicationRunnerExtension"/>
+
+        <moduleType id="BSP_SYNTHETIC_MODULE" implementationClass="org.jetbrains.plugins.bsp.project.BspSyntheticModuleType"/>
+        <moduleConfigurationEditorProvider implementation="org.jetbrains.plugins.bsp.project.BspSyntheticModuleEditorProvider"/>
+
+        <externalSystemManager implementation="org.jetbrains.plugins.bsp.project.BspExternalSystemManager"/>
+
+<!--        <externalProjectDataService implementation="org.jetbrains.plugins.bsp.data.ScalaSdkService" order="last"/>-->
+        <externalProjectDataService implementation="org.jetbrains.plugins.bsp.data.BspMetadataService"/>
+        <externalProjectDataService implementation="org.jetbrains.plugins.bsp.data.BspProjectDataService"/>
+
+        <externalIconProvider key="BSP" implementationClass="org.jetbrains.plugins.bsp.BspIconProvider" />
+
+        <applicationService serviceImplementation="org.jetbrains.plugins.bsp.settings.BspSystemSettings"/>
+        <projectService serviceImplementation="org.jetbrains.plugins.bsp.settings.BspSettings"/>
+        <projectService serviceImplementation="org.jetbrains.plugins.bsp.settings.BspLocalSettings"/>
+        <projectService serviceImplementation="org.jetbrains.plugins.bsp.BspBuildLoopService"/>
+
+        <applicationService serviceImplementation="org.jetbrains.plugins.bsp.protocol.BspCommunicationService"/>
+
+        <projectImportProvider implementation="org.jetbrains.plugins.bsp.project.importing.BspProjectImportProvider"/>
+        <projectImportBuilder implementation="org.jetbrains.plugins.bsp.project.importing.BspProjectImportBuilder"/>
+
+        <projectOpenProcessor implementation="org.jetbrains.plugins.bsp.project.importing.BspProjectOpenProcessor"/>
+
+        <projectConfigurable groupId="build.tools" displayName="BSP" instance="org.jetbrains.plugins.bsp.project.BspExternalSystemConfigurable" />
+
+        <toolWindow id="bsp" anchor="right"
+                    icon="/org/jetbrains/plugins/scala/bsp/images/toolWindowBuildServerProtocol.svg"
+                    factoryClass="org.jetbrains.plugins.bsp.BspToolWindowFactory" />
+
+        <projectTaskRunner implementation="org.jetbrains.plugins.bsp.project.BspProjectTaskRunner"/>
+        <postStartupActivity implementation="org.jetbrains.plugins.bsp.BspStartupActivity"/>
+
+        <configurationType implementation="org.jetbrains.plugins.bsp.project.test.BspTestRunType"/>
+
+        <statusBarWidgetProvider implementation="org.jetbrains.plugins.bsp.BspServerWidgetProvider"/>
+
+        <java.programPatcher implementation="org.jetbrains.plugins.bsp.project.test.environment.BspJvmEnvironmentProgramPatcher"/>
+        <stepsBeforeRunProvider implementation="org.jetbrains.plugins.bsp.project.test.environment.BspFetchEnvironmentTaskProvider"/>
+
+        <moduleService serviceImplementation="org.jetbrains.plugins.bsp.project.test.environment.PersistentBspTargetIdHolder"/>
+
+        <registryKey key="BSP.system.in.process" defaultValue="true" restartRequired="true"
+                     description="Internal, do not change"/>
+    </extensions>
+
+    <projectListeners>
+        <listener class="org.jetbrains.plugins.bsp.project.test.environment.BspFetchTestEnvironmentTaskInstaller"
+                  topic="com.intellij.execution.RunManagerListener"/>
+    </projectListeners>
+
+    <actions>
+    </actions>
+
+
+</idea-plugin>
