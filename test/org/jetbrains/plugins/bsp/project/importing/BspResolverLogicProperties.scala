@@ -22,23 +22,11 @@ import org.scalatestplus.scalacheck.Checkers
 
 import scala.jdk.CollectionConverters._
 
-final protected class MockDisposable extends Disposable {
-  private var disposed = false
-
-  override def dispose(): Unit = {
-    disposed = true
-  }
-
-  def isDisposed: Boolean = disposed
-
-  override def toString: String =
-    "MockDisposable"
-}
 
 class BspResolverLogicProperties extends AssertionsForJUnit with Checkers {
 
   implicit val gson: Gson = new GsonBuilder().setPrettyPrinting().create()
-  MockApplication.setUp(new MockDisposable())
+  TestApplication.mockApplication()
 
   @Test
   def testGetScalaSdkData(): Unit = check(

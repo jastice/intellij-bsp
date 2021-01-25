@@ -430,7 +430,7 @@ private[importing] object BspResolverLogic {
   private def mergeFiles(a: Seq[File], b: Seq[File]) =
     (a++b).sortBy(_.getAbsolutePath).distinct
 
-  private def mergeModuleKind(a: ModuleKind, b: ModuleKind) =
+  private[importing] def mergeModuleKind(a: ModuleKind, b: ModuleKind) =
     (a,b) match {
       case (UnspecifiedModule(), other) => other
       case (other, UnspecifiedModule()) => other
