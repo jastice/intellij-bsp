@@ -2,17 +2,18 @@ package org.jetbrains.plugins.bsp.project.importing
 
 import java.io.File
 import java.nio.file.Path
+
 import ch.epfl.scala.bsp.testkit.gen.Bsp4jGenerators._
 import ch.epfl.scala.bsp.testkit.gen.bsp4jArbitrary._
 import ch.epfl.scala.bsp4j._
 import com.google.gson.{Gson, GsonBuilder}
+import com.intellij.mock.MockApplication
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.bsp.project.importing.BspResolverDescriptors.{ModuleDescription, ProjectModules, ScalaModule, SourceDirectory}
 import org.jetbrains.plugins.bsp.project.importing.BspResolverLogic._
 import org.jetbrains.plugins.bsp.project.importing.Generators._
-import org.jetbrains.plugins.bsp.project.importing.BspResolverDescriptors.{ModuleDescription, ScalaModule, SourceDirectory}
-import org.junit.experimental.categories.Category
 import org.junit.{Ignore, Test}
 import org.scalacheck.Prop.{forAll, propBoolean}
 import org.scalacheck._
@@ -21,24 +22,38 @@ import org.scalatestplus.scalacheck.Checkers
 
 import scala.jdk.CollectionConverters._
 
+final protected class MockDisposable extends Disposable {
+  private var disposed = false
+
+  override def dispose(): Unit = {
+    disposed = true
+  }
+
+  def isDisposed: Boolean = disposed
+
+  override def toString: String =
+    "MockDisposable"
+}
+
 class BspResolverLogicProperties extends AssertionsForJUnit with Checkers {
 
   implicit val gson: Gson = new GsonBuilder().setPrettyPrinting().create()
+  MockApplication.setUp(new MockDisposable())
 
-  @Test @Ignore
+  @Test
   def testGetScalaSdkData(): Unit = check(
     forAll { (scalaBuildTarget: ScalaBuildTarget, scalacOptionsItem: ScalacOptionsItem) =>
 
       val (_, data) = getScalaSdkData(scalaBuildTarget, Some(scalacOptionsItem))
-      val jarsToClasspath = ! scalaBuildTarget.getJars.isEmpty ==> ! data.scalacClasspath.isEmpty
+      val jarsToClasspath = !scalaBuildTarget.getJars.isEmpty ==> !data.scalacClasspath.isEmpty
 
       jarsToClasspath && data.scalaVersion != null
     })
 
-  @Test @Ignore
-  def `calculateModuleDescriptions succeeds for build targets with Scala`() : Unit = check(
+  @Test
+  def `calculateModuleDescriptions succeeds for build targets with Scala`(): Unit = check(
     forAll(Gen.listOf(genScalaBuildTargetWithoutTags(List(BuildTargetTag.NO_IDE)))) { buildTargets: List[BuildTarget] =>
-      forAll { (scalacOptionsItems: List[ScalacOptionsItem], javacOptionsItems: List[JavacOptionsItem], sourcesItems: List[SourcesItem], resourcesItems: List[ResourcesItem], dependencySourcesItems: List[DependencySourcesItem]) =>
+      forAll(genScalaBuildTargetWithData(buildTargets)) { case (scalacOptionsItems: List[ScalacOptionsItem], javacOptionsItems: List[JavacOptionsItem], sourcesItems: List[SourcesItem], resourcesItems: List[ResourcesItem], dependencySourcesItems: List[DependencySourcesItem]) =>
         val descriptions = calculateModuleDescriptions(buildTargets, scalacOptionsItems, javacOptionsItems, sourcesItems, resourcesItems, dependencySourcesItems)
         val moduleIds = (descriptions.modules ++ descriptions.synthetic).map(_.data.id)
         val moduleForEveryTarget = (buildTargets.nonEmpty && buildTargets.exists(_.getBaseDirectory != null)) ==> descriptions.modules.nonEmpty
@@ -48,7 +63,7 @@ class BspResolverLogicProperties extends AssertionsForJUnit with Checkers {
     }
   )
 
-  @Test @Ignore
+  @Test
   def `test moduleDescriptionForTarget succeeds for build targets with Scala`(): Unit = check(
     forAll(genBuildTargetWithScala) { target: BuildTarget =>
       forAll { (scalacOptions: Option[ScalacOptionsItem], javacOptions: Option[JavacOptionsItem], depSources: Seq[File], sources: Seq[SourceDirectory], resources: Seq[SourceDirectory], dependencyOutputs: List[File]) =>
@@ -91,9 +106,9 @@ class BspResolverLogicProperties extends AssertionsForJUnit with Checkers {
           }
       }
     }
-)
+  )
 
-  @Test @Ignore
+  @Test
   def `test mergeModules`(): Unit = check(
     forAll { (description1: ModuleDescription, description2: ModuleDescription) =>
       val data1 = description1.data
@@ -102,8 +117,7 @@ class BspResolverLogicProperties extends AssertionsForJUnit with Checkers {
       val data = merged.data
 
       // TODO more thorough properties
-      data.basePath == data1.basePath &&
-        data.targets == (data1.targets ++ data2.targets).sortBy(_.getId.getUri)
+      data.targets == (data1.targets ++ data2.targets).sortBy(_.getId.getUri)
     }
   )
 

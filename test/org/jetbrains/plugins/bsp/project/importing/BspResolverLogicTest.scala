@@ -7,16 +7,16 @@ import org.junit.Test
 import scala.jdk.CollectionConverters._
 
 class BspResolverLogicTest {
+  val uri = "ePzqj://jqke:540/n/ius7/jDa/t/z78"
+  val target = new BuildTarget(
+    new BuildTargetIdentifier(uri),
+    List("bla").asJava, null, List.empty.asJava,
+    new BuildTargetCapabilities(true,true,true)
+  )
 
   /** When base dir is empty, only root module is created */
   @Test
   def testCalculateModuleDescriptionsEmptyBaseDir(): Unit = {
-
-    val target = new BuildTarget(
-      new BuildTargetIdentifier("ePzqj://jqke:540/n/ius7/jDa/t/z78"),
-      List("bla").asJava, null, List.empty.asJava,
-      new BuildTargetCapabilities(true,true,true)
-    )
 
     val descriptions = BspResolverLogic.calculateModuleDescriptions(List(target), Nil, Nil, Nil, Nil, Nil)
 
@@ -25,6 +25,12 @@ class BspResolverLogicTest {
     val rootModule = descriptions.modules.head
     assert(rootModule.moduleKindData == UnspecifiedModule())
     assert(rootModule.data.targets.head == target)
+  }
+
+  @Test
+  def testSharedModuleIdWhenTargetIsNull(): Unit = {
+    val id = BspResolverLogic.sharedModuleId(List(target))
+    assert(id == uri)
   }
 
 }
