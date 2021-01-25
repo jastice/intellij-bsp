@@ -280,6 +280,10 @@ private[importing] object BspResolverLogic {
     else Option(ModuleDescription(moduleDescriptionData, moduleKind.getOrElse(UnspecifiedModule())))
   }
 
+  implicit class SafeBuildTarget(target: BuildTarget){
+    def getDisplayNameOrId: String = Option(target.getDisplayName).getOrElse(target.getId.getUri)
+  }
+
   private[importing] def createModuleDescriptionData(target: BuildTarget,
                                                      tags: Seq[String],
                                                      moduleBase: Option[File],
@@ -289,11 +293,11 @@ private[importing] object BspResolverLogic {
                                                      classPath: Seq[File],
                                                      dependencySources: Seq[File],
                                                      languageLevel: Option[LanguageLevel]
-                                               ): ModuleDescriptionData = {
+                                                    ): ModuleDescriptionData = {
     import BuildTargetTag._
 
     val moduleId = target.getId.getUri
-    val moduleName = target.getDisplayName
+    val moduleName = target.getDisplayNameOrId
 
     val dataBasic = ModuleDescriptionData(
       moduleId,
@@ -336,7 +340,7 @@ private[importing] object BspResolverLogic {
     val underscores = """(?<=[^\w.]|_)|(?=[^\w.]|_)""".r
     val dotsAndDigits = """(?<!\d)(?=\.)|(?<=\.)(?!\d)""".r
     val splitedNames = targets
-      .map(_.getDisplayName.split(s"$upperCaseWords|$pascalCaseWords|$underscores|$dotsAndDigits"))
+      .map(_.getDisplayNameOrId.split(s"$upperCaseWords|$pascalCaseWords|$underscores|$dotsAndDigits"))
     val maxPartsCount = splitedNames.map(_.length).max
     val groups = splitedNames
       .map(parts => parts ++ Seq.fill(maxPartsCount - parts.length)(""))
@@ -350,6 +354,7 @@ private[importing] object BspResolverLogic {
     head.map(combine).mkString +
       (if (tail.nonEmpty) tail.map(combine).mkString("(", "", ")") else tail.mkString)
   }
+
 
   /** "Inherits" data from other modules into newly created synthetic module description.
    * This is a heuristic to for sharing source directories between modules. If those modules have conflicting dependencies,
@@ -425,17 +430,27 @@ private[importing] object BspResolverLogic {
   private def mergeFiles(a: Seq[File], b: Seq[File]) =
     (a++b).sortBy(_.getAbsolutePath).distinct
 
-  private def mergeModuleKind(a: ModuleKind, b: ModuleKind) =
+  private[importing] def mergeModuleKind(a: ModuleKind, b: ModuleKind) =
     (a,b) match {
       case (UnspecifiedModule(), other) => other
       case (other, UnspecifiedModule()) => other
       case (module1@ScalaModule(_, data1), module2@ScalaModule(_, data2)) =>
-        if (Version(data1.scalaVersion) >= Version(data2.scalaVersion))
-          module1
-        else
-          module2
+        mergeScalaModule(module1, data1, module2, data2)
       case (first, _) => first
     }
+
+  private def mergeScalaModule(module1: ScalaModule, data1: ScalaSdkData, module2: ScalaModule, data2: ScalaSdkData) = {
+    if(data1.scalaVersion == null && data2.scalaVersion == null)
+      module1
+    else if(data1.scalaVersion == null)
+      module2
+    else if(data2.scalaVersion == null)
+      module1
+    else if (Version(data1.scalaVersion) >= Version(data2.scalaVersion))
+      module1
+    else
+      module2
+  }
 
   private[importing] def projectNode(workspace: File,
                                      projectModules: ProjectModules,

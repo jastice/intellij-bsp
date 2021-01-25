@@ -2,10 +2,11 @@ package org.jetbrains.plugins.bsp.project.importing
 
 import java.io.File
 import java.nio.file.{Path, Paths}
+
 import ch.epfl.scala.bsp.testkit.gen.Bsp4jGenerators._
 import ch.epfl.scala.bsp.testkit.gen.UtilGenerators.{genFileUriString, genPath}
 import ch.epfl.scala.bsp.testkit.gen.bsp4jArbitrary._
-import ch.epfl.scala.bsp4j.{BuildTarget, BuildTargetIdentifier}
+import ch.epfl.scala.bsp4j.{BuildTarget, BuildTargetIdentifier, DependencySourcesItem, JavacOptionsItem, ResourcesItem, ScalacOptionsItem, SourceItem, SourcesItem}
 import com.google.gson.{Gson, GsonBuilder}
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.bsp.data.JdkData
@@ -13,6 +14,7 @@ import org.jetbrains.plugins.bsp.data.ScalaSdkData
 import org.jetbrains.plugins.bsp.project.importing.BspResolverDescriptors.{ModuleDescription, SourceDirectory, _}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
+
 import scala.jdk.CollectionConverters._
 
 object Generators {
@@ -89,10 +91,10 @@ object Generators {
 
   def genScalaSdkData: Gen[ScalaSdkData] = for {
     scalaOrganization <- arbitrary[String]
-    scalaVersion <- arbitrary[Option[String]]
+    scalaVersion <- Gen.listOf(arbitrary[String])
     scalacClasspath <- arbitrary[File].list
     scalacOptions <- arbitrary[String].list
-  } yield ScalaSdkData(scalaOrganization, scalaVersion.orNull, scalacClasspath, scalacOptions)
+  } yield ScalaSdkData(scalaOrganization, if(scalaVersion.nonEmpty) scalaVersion.mkString("-") else null, scalacClasspath, scalacOptions)
 
   def genJdkData: Gen[JdkData] = for {
     javaHome <- genFileUri
@@ -127,5 +129,19 @@ object Generators {
       sourceDirs, testSourceDirs, resourceDirs, testResourceDirs, classPath, classPathSources, testClassPath, testClassPathSources, None)
     ModuleDescription(data, moduleKind)
   }
+
+  def genScalaBuildTargetWithData(buildTargets: List[BuildTarget]): Gen[(List[ScalacOptionsItem], List[JavacOptionsItem], List[SourcesItem], List[ResourcesItem], List[DependencySourcesItem])] = for {
+    scalacOptionsItems <- arbitrary[List[ScalacOptionsItem]]
+    javacOptionsItems <- arbitrary[List[JavacOptionsItem]]
+    sourceItems <- arbitrary[List[SourceItem]]
+    resourcesItems <- arbitrary[List[ResourcesItem]]
+    dependencySourcesItems <- arbitrary[List[DependencySourcesItem]]
+  } yield {
+    val size = if (buildTargets.isEmpty || sourceItems.isEmpty) 1 else math.max(sourceItems.size / buildTargets.size, 1)
+    val splittedSourceItems = sourceItems.grouped(size).toList
+    val sourcesItems = buildTargets.zipWithIndex.map { case (target, i) => new SourcesItem(target.getId, splittedSourceItems.lift(i).getOrElse(List.empty).asJava) }
+    (scalacOptionsItems, javacOptionsItems, sourcesItems, resourcesItems, dependencySourcesItems)
+  }
+
 
 }
