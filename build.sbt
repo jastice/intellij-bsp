@@ -10,7 +10,7 @@ intellijBuild in ThisBuild := "LATEST-EAP-SNAPSHOT"
 intellijPlatform in ThisBuild := IntelliJPlatform.IdeaCommunity
 //packageOutputDir := target.value / "plugin" / "BSP"
 
-val bspVersion = "2.0.0-M13+25-fcc73a35-SNAPSHOT"
+val bspVersion = "2.0.0-M13+26-c53053ac-SNAPSHOT"
 
 val bspPlugin = (project in file("."))
   .settings(

@@ -6,11 +6,10 @@ import java.nio.file.{Path, Paths}
 import ch.epfl.scala.bsp.testkit.gen.Bsp4jGenerators._
 import ch.epfl.scala.bsp.testkit.gen.UtilGenerators.{genFileUriString, genPath}
 import ch.epfl.scala.bsp.testkit.gen.bsp4jArbitrary._
-import ch.epfl.scala.bsp4j.{BuildTarget, BuildTargetIdentifier, DependencySourcesItem, JavacOptionsItem, ResourcesItem, ScalacOptionsItem, SourceItem, SourcesItem}
+import ch.epfl.scala.bsp4j._
 import com.google.gson.{Gson, GsonBuilder}
 import com.intellij.pom.java.LanguageLevel
-import org.jetbrains.plugins.bsp.data.JdkData
-import org.jetbrains.plugins.bsp.data.ScalaSdkData
+import org.jetbrains.plugins.bsp.data.{JdkData, ScalaSdkData}
 import org.jetbrains.plugins.bsp.project.importing.BspResolverDescriptors.{ModuleDescription, SourceDirectory, _}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
@@ -142,6 +141,5 @@ object Generators {
     val sourcesItems = buildTargets.zipWithIndex.map { case (target, i) => new SourcesItem(target.getId, splittedSourceItems.lift(i).getOrElse(List.empty).asJava) }
     (scalacOptionsItems, javacOptionsItems, sourcesItems, resourcesItems, dependencySourcesItems)
   }
-
 
 }

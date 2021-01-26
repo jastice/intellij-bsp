@@ -7,8 +7,6 @@ import ch.epfl.scala.bsp.testkit.gen.Bsp4jGenerators._
 import ch.epfl.scala.bsp.testkit.gen.bsp4jArbitrary._
 import ch.epfl.scala.bsp4j._
 import com.google.gson.{Gson, GsonBuilder}
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.bsp.project.importing.BspResolverDescriptors.{ModuleDescription, ProjectModules, ScalaModule, SourceDirectory}
@@ -109,19 +107,19 @@ class BspResolverLogicProperties extends AssertionsForJUnit with Checkers {
     }
   )
 
-  @Test @Ignore
+  @Test
   def `test projectNode`(): Unit = check(
     forAll {
       (root: Path, moduleDescriptions: List[ModuleDescription]) =>
 
         val projectRootPath = root.toString
         val projectModules = ProjectModules(moduleDescriptions, Seq.empty)
-        val node = projectNode(root.toFile, projectModules, BspProjectResolver.rootExclusions(root.toFile))
+        val node = projectNode(root.toFile, projectModules, List.empty)
 
         // TODO more thorough properties
         node.getChildren.size >= moduleDescriptions.size
         node.getChildren.asScala.exists { node =>
-          node.getData(ProjectKeys.MODULE).getLinkedExternalProjectPath == projectRootPath
+          node.getData(ProjectKeys.PROJECT).getLinkedExternalProjectPath == projectRootPath
         }
     }
   )
