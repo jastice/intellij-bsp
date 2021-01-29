@@ -28,6 +28,17 @@ object Generators {
   implicit val arbLanguageLevel: Arbitrary[LanguageLevel] = Arbitrary(genLanguageLevel)
   implicit val arbSourceDirectory: Arbitrary[SourceDirectory] = Arbitrary(genSourceDirectory)
 
+
+
+  lazy val genBuildTargetTagWithoutTest: Gen[String] = Gen.oneOf(
+    BuildTargetTag.APPLICATION,
+    BuildTargetTag.BENCHMARK,
+    BuildTargetTag.INTEGRATION_TEST,
+    BuildTargetTag.LIBRARY,
+    BuildTargetTag.NO_IDE,
+    BuildTargetTag.MANUAL
+  )
+
   /** A system-dependent file path. */
   def genPathBelow(root: Path): Gen[Path] = for {
     segmentCount <- Gen.choose(0, 10)
