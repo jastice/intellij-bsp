@@ -7,14 +7,12 @@ import ch.epfl.scala.bsp.testkit.gen.Bsp4jGenerators._
 import ch.epfl.scala.bsp.testkit.gen.bsp4jArbitrary._
 import ch.epfl.scala.bsp4j._
 import com.google.gson.{Gson, GsonBuilder}
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.pom.java.LanguageLevel
-import org.jetbrains.plugins.bsp.project.importing.BspResolverDescriptors.{ModuleDescription, ProjectModules, ScalaModule, SourceDirectory}
+import org.jetbrains.plugins.bsp.project.importing.BspResolverDescriptors._
 import org.jetbrains.plugins.bsp.project.importing.BspResolverLogic._
 import org.jetbrains.plugins.bsp.project.importing.Generators._
-import org.junit.{Ignore, Test}
+import org.junit.Test
 import org.scalacheck.Prop.{forAll, propBoolean}
 import org.scalacheck._
 import org.scalatestplus.junit.AssertionsForJUnit
@@ -65,35 +63,42 @@ class BspResolverLogicProperties extends AssertionsForJUnit with Checkers {
     }
   )
 
-  @Test @Ignore
-  def `test createScalaModuleDescription`(): Unit = check(
-    forAll(genPath, Gen.listOf(genBuildTargetTag)) { (basePath: Path, tags: List[String]) =>
+  def `test createScalaModuleDescription`(tagGenerator: Gen[String],assertions: (BuildTarget, ModuleDescriptionData, List[String], Option[File],List[SourceDirectory], List[File], List[File]) => Prop): Unit = check(
+    forAll(genPath, Gen.listOf(tagGenerator)) { (basePath: Path, tags: List[String]) =>
       forAll(Gen.listOf(genSourceDirectoryUnder(basePath)), Gen.listOf(genSourceDirectoryUnder(basePath))) {
         (sourceRoots: List[SourceDirectory], resourceRoots: List[SourceDirectory]) =>
           forAll { (target: BuildTarget, moduleBase: Option[File], outputPath: Option[File], classpath: List[File], dependencySources: List[File], languageLevel: LanguageLevel) =>
             val description = createModuleDescriptionData(target, tags, moduleBase, outputPath, sourceRoots, resourceRoots, classpath, dependencySources, Some(languageLevel))
+            val verifyBasePath = (description.basePath == moduleBase) :| "base path should be set"
 
-            val p1 = (description.basePath == moduleBase) :| "base path should be set"
-            val p2 = (tags.contains(BuildTargetTag.LIBRARY) || tags.contains(BuildTargetTag
-              .APPLICATION)) ==>
-              (description.output == outputPath &&
-                description.targetDependencies == target.getDependencies.asScala &&
-                description.classpathSources == dependencySources &&
-                description.sourceDirs == sourceRoots &&
-                description.classpath == classpath) :|
-                s"data not correctly set for library or application tags. Result data was: $description"
-            val p3 = tags.contains(BuildTargetTag.TEST) ==>
-              (description.testOutput == outputPath &&
-                description.targetTestDependencies == target.getDependencies.asScala &&
-                description.testClasspathSources == dependencySources &&
-                description.testSourceDirs == sourceRoots &&
-                description.testClasspath == classpath) :|
-                s"data not correctly set for test tag. Result data was: $description"
-
-            p1 && p2 && p3
+            verifyBasePath && assertions(target, description, tags, outputPath, sourceRoots, classpath, dependencySources)
           }
       }
-    }
+    })
+
+  @Test
+  def `test createScalaModuleDescription for Libraries and Applications`(): Unit = `test createScalaModuleDescription`(genBuildTargetTagWithoutTest,
+    (target, description, tags, outputPath, sourceRoots, classpath, dependencySources) =>
+      ((tags.contains(BuildTargetTag.LIBRARY) || tags.contains(BuildTargetTag
+        .APPLICATION)) && !tags.contains(BuildTargetTag.TEST)) ==>
+        (description.output == outputPath &&
+          description.targetDependencies == target.getDependencies.asScala &&
+          description.classpathSources == dependencySources &&
+          description.sourceDirs == sourceRoots &&
+          description.classpath == classpath) :|
+          s"data not correctly set for library or application tags. Result data was: $description"
+  )
+
+  @Test
+  def `test createScalaModuleDescription for Tests`(): Unit = `test createScalaModuleDescription`(genBuildTargetTag,
+    (target, description, tags, outputPath, sourceRoots, classpath, dependencySources) =>
+      tags.contains(BuildTargetTag.TEST) ==>
+        (description.testOutput == outputPath &&
+          description.targetTestDependencies == target.getDependencies.asScala &&
+          description.testClasspathSources == dependencySources &&
+          description.testSourceDirs == sourceRoots &&
+          description.testClasspath == classpath) :|
+          s"data not correctly set for test tag. Result data was: $description"
   )
 
   @Test
@@ -109,19 +114,19 @@ class BspResolverLogicProperties extends AssertionsForJUnit with Checkers {
     }
   )
 
-  @Test @Ignore
+  @Test
   def `test projectNode`(): Unit = check(
     forAll {
       (root: Path, moduleDescriptions: List[ModuleDescription]) =>
 
         val projectRootPath = root.toString
         val projectModules = ProjectModules(moduleDescriptions, Seq.empty)
-        val node = projectNode(root.toFile, projectModules, BspProjectResolver.rootExclusions(root.toFile))
+        val node = projectNode(root.toFile, projectModules, List.empty)
 
         // TODO more thorough properties
         node.getChildren.size >= moduleDescriptions.size
         node.getChildren.asScala.exists { node =>
-          node.getData(ProjectKeys.MODULE).getLinkedExternalProjectPath == projectRootPath
+          node.getData(ProjectKeys.PROJECT).getLinkedExternalProjectPath == projectRootPath
         }
     }
   )

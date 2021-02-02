@@ -1,7 +1,10 @@
 package org.jetbrains.plugins.bsp.project.importing
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import org.jetbrains.plugins.bsp.project.importing.BspResolverDescriptors.ModuleDescription
+
+import scala.util.{Failure, Success, Try}
 
 /**
  * This extension allows to customize names created during BSP project import/refresh.
@@ -28,7 +31,10 @@ object BspResolverNamingExtension {
   }
 
   private def get(apply: BspResolverNamingExtension => Option[String]): Option[String] = {
-    EP_NAME.getExtensions.iterator.map(apply).collectFirst { case Some(r) => r }
+    Try(EP_NAME.getExtensions.iterator.map(apply).collectFirst { case Some(r) => r }) match {
+      case Failure(exception) => if (ApplicationManager.getApplication.isUnitTestMode) None else throw exception
+      case Success(value) => value
+    }
   }
 
 }
