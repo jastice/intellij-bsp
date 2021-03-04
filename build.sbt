@@ -6,7 +6,7 @@ scalaVersion in ThisBuild := "2.13.4"
 resolvers in ThisBuild += Resolver.sonatypeRepo("snapshots")
 
 intellijPluginName in ThisBuild := "BSP"
-intellijBuild in ThisBuild := "LATEST-EAP-SNAPSHOT"
+intellijBuild in ThisBuild := "211.6222.4"
 intellijPlatform in ThisBuild := IntelliJPlatform.IdeaCommunity
 //packageOutputDir := target.value / "plugin" / "BSP"
 
@@ -32,5 +32,3 @@ val bspPlugin = (project in file("."))
     intellijPlugins += "com.intellij.java".toPlugin,
   )
   .enablePlugins(SbtIdeaPlugin)
-
-
