@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NonNls
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
+import scala.language.implicitConversions
 import scala.runtime.NonLocalReturnControl
 
 object extensions {
