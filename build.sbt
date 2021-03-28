@@ -1,4 +1,4 @@
-name := "intellij-bsp"
+name := "bspPlugin"
 organization := "JetBrains"
 version := "0.1"
 
