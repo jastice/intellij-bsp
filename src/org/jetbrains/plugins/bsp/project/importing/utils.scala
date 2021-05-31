@@ -38,14 +38,15 @@ object utils {
             containsSbtBuildFile(projectDirectory)
       }
 
-
-
     def detectSbtVersion(directory: File, sbtLauncher: => File): Version =
       sbtVersionIn(directory)
         .orElse(sbtVersionInBootPropertiesOf(sbtLauncher))
         .orElse(readManifestAttributeFrom(sbtLauncher, "Implementation-Version"))
         .map(Version.apply)
         .getOrElse(LatestVersion)
+
+    def sbtVersionParam(sbtVersion: Version): String =
+      s"-Dsbt.version=$sbtVersion"
 
     def isSbtFile(file: VirtualFile): Boolean =
       file.getExtension == SbtFileExtension
