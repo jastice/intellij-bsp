@@ -11,6 +11,7 @@ import scala.util.{Failure, Success, Try, Using}
 import java.io.{BufferedWriter, File, OutputStreamWriter, PrintWriter}
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
+import coursier._
 
 
 class SbtStructureDump {
@@ -42,9 +43,14 @@ class SbtStructureDump {
     // assuming here that this method might still be called without valid project
 
     val jvmOptions = vmOptions
-//    val jvmOptions = SbtOpts.loadFrom(directory) ++ JvmOpts.loadFrom(directory) ++ vmOptions
+    //    val jvmOptions = SbtOpts.loadFrom(directory) ++ JvmOpts.loadFrom(directory) ++ vmOptions
 
-    val sbtLauncher = ???
+    val resolution = "xxxx"
+//    val resolution = Fetch()
+//      .addDependencies(dep"org.scala-sbt:sbt-launch:1.5.2")
+//      .run()
+
+    //    val sbtLauncher = ???
 
     val processCommandsRaw =
       List(
@@ -52,8 +58,9 @@ class SbtStructureDump {
         "-Djline.terminal=jline.UnsupportedTerminal",
         "-Dsbt.log.noformat=true",
         "-Dfile.encoding=UTF-8") ++
-                jvmOptions ++
-        List("-jar", normalizePath(sbtLauncher)) ++
+        jvmOptions ++
+        //        List("-jar", normalizePath(sbtLauncher)) ++
+        List("-jar", resolution) ++
         sbtCommandLineArgs // :+ "--debug"
 
     val processCommands = processCommandsRaw.filterNot(_.isEmpty)
@@ -75,16 +82,16 @@ class SbtStructureDump {
           // exit needs to be in a separate command, otherwise it will never execute when a previous command in the chain errors
           writer.println("exit")
           writer.flush()
-//          handle(process, dumpTaskId, reporter)
+          //          handle(process, dumpTaskId, reporter)
           Success(BuildMessages.empty)
         }
       }
-//      .recoverWith {
-//        case _: ImportCancelledException =>
-//          Success(BuildMessages.empty.status(BuildMessages.Canceled))
-//        case fail =>
-//          Failure(ImportCancelledException(fail))
-//      }
+    //      .recoverWith {
+    //        case _: ImportCancelledException =>
+    //          Success(BuildMessages.empty.status(BuildMessages.Canceled))
+    //        case fail =>
+    //          Failure(ImportCancelledException(fail))
+    //      }
 
     val eventResult = resultMessages match {
       case Success(messages) =>

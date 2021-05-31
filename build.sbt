@@ -20,6 +20,7 @@ val bspPlugin = (project in file("."))
     unmanagedResourceDirectories in Test += baseDirectory.value / "testResources",
     libraryDependencies ++= Seq(
       "com.propensive" %% "mercator" % "0.3.0",
+      "io.get-coursier" %% "coursier" % "2.0.16",
       "ch.epfl.scala" %% "bsp-testkit" % bspVersion % Test,
       "org.scalatest" %% "scalatest" % "3.2.0" % Test,
       "org.scalatestplus" %% "scalacheck-1-14" % "3.2.1.0" % Test,
