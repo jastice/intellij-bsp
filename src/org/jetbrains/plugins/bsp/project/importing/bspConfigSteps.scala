@@ -18,7 +18,7 @@ import org.jetbrains.plugins.bsp.{BspBundle, BspUtil}
 import org.jetbrains.plugins.bsp.project.importing.BspSetupConfigStep.ConfigSetupTask
 import org.jetbrains.plugins.bsp.project.importing.bspConfigSteps._
 import org.jetbrains.plugins.bsp.project.importing.setup.{BspConfigSetup, FastpassConfigSetup, NoConfigSetup, SbtConfigSetup}
-import org.jetbrains.plugins.bsp.project.importing.utils.sbt.{canImport, detectSbtVersion, getLauncher}
+import org.jetbrains.plugins.bsp.project.importing.utils.sbt.{canImport, detectSbtVersion, sbtLauncher}
 import org.jetbrains.plugins.bsp.protocol.BspConnectionConfig
 import org.jetbrains.plugins.bsp.reporter.IndicatorReporter
 import org.jetbrains.plugins.bsp.settings.BspProjectSettings._
@@ -120,7 +120,7 @@ object bspConfigSteps {
     val vfile = LocalFileSystem.getInstance().findFileByIoFile(workspace)
 
     val sbtChoice = if (utils.sbt.canImport(vfile)) {
-      val sbtVersion = detectSbtVersion(workspace, getLauncher)
+      val sbtVersion = detectSbtVersion(workspace, sbtLauncher)
       if (sbtVersion.major(2) >= Version("1.4")) {
         // sbt >= 1.4 : user choose: bloop or sbt
         List(SbtSetup, BloopSbtSetup)

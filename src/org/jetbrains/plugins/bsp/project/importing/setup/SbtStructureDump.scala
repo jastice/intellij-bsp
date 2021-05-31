@@ -11,7 +11,6 @@ import scala.util.{Failure, Success, Try, Using}
 import java.io.{BufferedWriter, File, OutputStreamWriter, PrintWriter}
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
-import coursier._
 
 
 class SbtStructureDump {
@@ -24,13 +23,13 @@ class SbtStructureDump {
              vmExecutable: File,
              vmOptions: Seq[String],
              environment0: Map[String, String],
+             sbtLauncher: File,
              sbtCommandLineArgs: List[String],
              @NonNls sbtCommands: String,
              @Nls reportMessage: String,
             )
             (implicit reporter: BuildReporter)
   : Try[BuildMessages] = {
-
 
     //    val environment = if (ApplicationManager.getApplication.isUnitTestMode && SystemInfo.isWindows) {
     //      val extraEnvs = defaultCoursierDirectoriesAsEnvVariables()
@@ -45,13 +44,6 @@ class SbtStructureDump {
     val jvmOptions = vmOptions
     //    val jvmOptions = SbtOpts.loadFrom(directory) ++ JvmOpts.loadFrom(directory) ++ vmOptions
 
-    val resolution = "xxxx"
-//    val resolution = Fetch()
-//      .addDependencies(dep"org.scala-sbt:sbt-launch:1.5.2")
-//      .run()
-
-    //    val sbtLauncher = ???
-
     val processCommandsRaw =
       List(
         normalizePath(vmExecutable),
@@ -59,8 +51,7 @@ class SbtStructureDump {
         "-Dsbt.log.noformat=true",
         "-Dfile.encoding=UTF-8") ++
         jvmOptions ++
-        //        List("-jar", normalizePath(sbtLauncher)) ++
-        List("-jar", resolution) ++
+        List("-jar", normalizePath(sbtLauncher)) ++
         sbtCommandLineArgs // :+ "--debug"
 
     val processCommands = processCommandsRaw.filterNot(_.isEmpty)

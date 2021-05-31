@@ -1,6 +1,7 @@
 package org.jetbrains.plugins.bsp.project.importing
 
 import com.intellij.openapi.vfs.VirtualFile
+import coursier.{Fetch, dependencyString}
 import org.jetbrains.plugins.bsp.util.Version
 import org.jetbrains.plugins.bsp.util.extensions.VirtualFileExt
 
@@ -8,6 +9,7 @@ import java.io.{BufferedInputStream, File, FileInputStream}
 import java.util.Properties
 import java.util.jar.JarFile
 import scala.util.Using
+
 
 object utils {
 
@@ -20,6 +22,11 @@ object utils {
     val ProjectDirectory = "project"
     val PropertiesFile = "build.properties"
     val SbtFileExtension = "sbt"
+
+    val sbtLauncher: File = Fetch()
+      .addDependencies(dep"org.scala-sbt:sbt-launch:1.5.2")
+      .run()
+      .head
 
     def canImport(file: VirtualFile): Boolean = file match {
       case null => false
