@@ -76,8 +76,6 @@ object utils {
       else version
     }
 
-    def getLauncher: File = ??? // FIXME implement getting a launcher. download on demand via coursier?
-
     private val MayUpgradeSbtVersion = Version("0.13.0")
 
     private def sbtVersionIn(directory: File): Option[String] =
@@ -144,6 +142,8 @@ object utils {
         properties.load(input)
         Option(properties.getProperty(name))
       }
+
+    def normalizePath(file: File): String = file.getAbsolutePath.replace('\\', '/')
 
   }
 }

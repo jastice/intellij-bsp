@@ -27,25 +27,25 @@ object SbtConfigSetup {
     val jdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdkType)
     val jdkExe = new File(jdkType.getVMExecutablePath(jdk))
     val jdkHome = Option(jdk.getHomePath).map(new File(_))
-    val sbtLauncher = utils.sbt.getLauncher
 
     // dummy command so that sbt will run, init and exit
     val sbtCommandLineArgs = List("early(startServer)")
     val sbtCommands = ""
 
-    val projectSbtVersion = detectSbtVersion(baseDir, getLauncher)
-    val sbtVersion = upgradedSbtVersion(projectSbtVersion)
-    val upgradeParam =
-      if (sbtVersion > projectSbtVersion)
-        List(sbtVersionParam(sbtVersion))
-      else List.empty
+//    val projectSbtVersion = detectSbtVersion(baseDir, getLauncher)
+//    val sbtVersion = upgradedSbtVersion(projectSbtVersion)
+//    val upgradeParam =
+//      if (sbtVersion > projectSbtVersion)
+//        List(sbtVersionParam(sbtVersion))
+//      else List.empty
 
-    val vmArgs = SbtExternalSystemManager.getVmOptions(Seq.empty, jdkHome) ++ upgradeParam
+    // val vmArgs = SbtExternalSystemManager.getVmOptions(Seq.empty, jdkHome) ++ upgradeParam
+    val vmArgs = Seq.empty
 
     val dumper = new SbtStructureDump()
     val runInit = (reporter: BuildReporter) => dumper.runSbt(
       baseDir, jdkExe, vmArgs,
-      Map.empty, sbtLauncher, sbtCommandLineArgs, sbtCommands,
+      Map.empty, sbtCommandLineArgs, sbtCommands,
       BspBundle.message("bsp.resolver.creating.sbt.configuration"),
     )(reporter)
     new SbtConfigSetup(dumper, runInit)
