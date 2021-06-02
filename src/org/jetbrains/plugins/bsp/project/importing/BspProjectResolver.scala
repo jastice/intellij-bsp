@@ -243,6 +243,7 @@ object BspProjectResolver {
   private case object Active extends ImportState
   private case class PreImportTask(dumper: PreImporter) extends ImportState
   private case class BspTask(communication: BspCommunication) extends ImportState
+  case class ImportCancelledException(cause: Throwable) extends Exception(cause)
 
   //noinspection ReferencePassedToNls
   private[importing] def targetData(targets: List[BuildTarget], parentId: EventId)

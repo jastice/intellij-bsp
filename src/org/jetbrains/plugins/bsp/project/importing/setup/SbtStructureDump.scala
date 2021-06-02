@@ -2,6 +2,7 @@ package org.jetbrains.plugins.bsp.project.importing.setup
 
 import com.intellij.build.events.impl.{FailureResultImpl, SkippedResultImpl, SuccessResultImpl}
 import org.jetbrains.annotations.{Nls, NonNls}
+import org.jetbrains.plugins.bsp.project.importing.BspProjectResolver.ImportCancelledException
 import org.jetbrains.plugins.bsp.project.importing.utils.sbt.normalizePath
 import org.jetbrains.plugins.bsp.reporter.BuildMessages.EventId
 import org.jetbrains.plugins.bsp.reporter.{BuildMessages, BuildReporter}
@@ -22,7 +23,7 @@ class SbtStructureDump {
   def runSbt(directory: File,
              vmExecutable: File,
              vmOptions: Seq[String],
-             environment0: Map[String, String],
+             environment: Map[String, String],
              sbtLauncher: File,
              sbtCommandLineArgs: List[String],
              @NonNls sbtCommands: String,
@@ -30,19 +31,7 @@ class SbtStructureDump {
             )
             (implicit reporter: BuildReporter)
   : Try[BuildMessages] = {
-
-    //    val environment = if (ApplicationManager.getApplication.isUnitTestMode && SystemInfo.isWindows) {
-    //      val extraEnvs = defaultCoursierDirectoriesAsEnvVariables()
-    //      environment0 ++ extraEnvs
-    //    }
-    //    else environment0
-    val environment = environment0
-
     val startTime = System.currentTimeMillis()
-    // assuming here that this method might still be called without valid project
-
-    val jvmOptions = vmOptions
-    //    val jvmOptions = SbtOpts.loadFrom(directory) ++ JvmOpts.loadFrom(directory) ++ vmOptions
 
     val processCommandsRaw =
       List(
@@ -50,7 +39,7 @@ class SbtStructureDump {
         "-Djline.terminal=jline.UnsupportedTerminal",
         "-Dsbt.log.noformat=true",
         "-Dfile.encoding=UTF-8") ++
-        jvmOptions ++
+        vmOptions ++
         List("-jar", normalizePath(sbtLauncher)) ++
         sbtCommandLineArgs // :+ "--debug"
 
@@ -73,16 +62,16 @@ class SbtStructureDump {
           // exit needs to be in a separate command, otherwise it will never execute when a previous command in the chain errors
           writer.println("exit")
           writer.flush()
-          //          handle(process, dumpTaskId, reporter)
+          // handle(process, dumpTaskId, reporter)
           Success(BuildMessages.empty)
         }
       }
-    //      .recoverWith {
-    //        case _: ImportCancelledException =>
-    //          Success(BuildMessages.empty.status(BuildMessages.Canceled))
-    //        case fail =>
-    //          Failure(ImportCancelledException(fail))
-    //      }
+      .recoverWith {
+        case _: ImportCancelledException =>
+          Success(BuildMessages.empty.status(BuildMessages.Canceled))
+        case fail =>
+          Failure(ImportCancelledException(fail))
+      }
 
     val eventResult = resultMessages match {
       case Success(messages) =>
@@ -103,4 +92,6 @@ class SbtStructureDump {
 
     resultMessages
   }
+
+
 }

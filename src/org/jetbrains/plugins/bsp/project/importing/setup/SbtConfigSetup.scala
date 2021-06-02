@@ -2,7 +2,6 @@ package org.jetbrains.plugins.bsp.project.importing.setup
 
 import java.io.File
 import com.intellij.openapi.projectRoots.{JavaSdk, ProjectJdkTable}
-import coursier._
 import org.jetbrains.plugins.bsp.BspBundle
 import org.jetbrains.plugins.bsp.project.importing.utils
 import org.jetbrains.plugins.bsp.project.importing.utils.sbt.{detectSbtVersion, sbtLauncher, sbtVersionParam, upgradedSbtVersion}
@@ -28,7 +27,6 @@ object SbtConfigSetup {
     val jdkType = JavaSdk.getInstance()
     val jdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdkType)
     val jdkExe = new File(jdkType.getVMExecutablePath(jdk))
-    val jdkHome = Option(jdk.getHomePath).map(new File(_))
     val sbtLauncher = utils.sbt.sbtLauncher
 
     // dummy command so that sbt will run, init and exit
@@ -42,8 +40,7 @@ object SbtConfigSetup {
         List(sbtVersionParam(sbtVersion))
       else List.empty
 
-    // val vmArgs = SbtExternalSystemManager.getVmOptions(Seq.empty, jdkHome) ++ upgradeParam
-    val vmArgs = Seq.empty
+    val vmArgs = upgradeParam
 
     val dumper = new SbtStructureDump()
     val runInit = (reporter: BuildReporter) => dumper.runSbt(

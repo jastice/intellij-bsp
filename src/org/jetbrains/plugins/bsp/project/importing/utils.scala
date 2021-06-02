@@ -24,7 +24,7 @@ object utils {
     val SbtFileExtension = "sbt"
 
     val sbtLauncher: File = Fetch()
-      .addDependencies(dep"org.scala-sbt:sbt-launch:1.5.2")
+      .addDependencies(dep"org.scala-sbt:sbt-launch:1.4.6")
       .run()
       .head
 
