@@ -9,10 +9,7 @@ This project is built using plugin [sbt-idea-plugin](https://github.com/JetBrain
 ### Requirements
 
 To be able to develop this, you need:
-- IntelliJ IDEA version matching the version set in `build.sbt` file, e.g.
-```
-intellijBuild in ThisBuild := "211.6222.4"
-```
+- The latest version of IntelliJ IDEA
 - JDK 11
 
 ### Setup
