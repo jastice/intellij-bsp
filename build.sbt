@@ -2,22 +2,22 @@ name := "bspPlugin"
 organization := "JetBrains"
 version := "0.1"
 
-scalaVersion in ThisBuild := "2.13.4"
-resolvers in ThisBuild += Resolver.sonatypeRepo("snapshots")
+ThisBuild / scalaVersion := "2.13.4"
+ThisBuild / resolvers += Resolver.sonatypeRepo("snapshots")
 
-intellijPluginName in ThisBuild := "BSP"
-intellijBuild in ThisBuild := "211.6222.4"
-intellijPlatform in ThisBuild := IntelliJPlatform.IdeaCommunity
+ThisBuild / intellijPluginName := "BSP"
+ThisBuild / intellijBuild := "212.3724.25"
+ThisBuild / intellijPlatform := IntelliJPlatform.IdeaCommunity
 //packageOutputDir := target.value / "plugin" / "BSP"
 
 val bspVersion = "2.0.0-M13+28-2ab51d83-SNAPSHOT"
 
 val bspPlugin = (project in file("."))
   .settings(
-    unmanagedSourceDirectories in Compile += baseDirectory.value / "src",
-    unmanagedSourceDirectories in Test += baseDirectory.value / "test",
-    unmanagedResourceDirectories in Compile += baseDirectory.value / "resources",
-    unmanagedResourceDirectories in Test += baseDirectory.value / "testResources",
+    Compile / unmanagedSourceDirectories += baseDirectory.value / "src",
+    Test / unmanagedSourceDirectories += baseDirectory.value / "test",
+    Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
+    Test/ unmanagedResourceDirectories += baseDirectory.value / "testResources",
     libraryDependencies ++= Seq(
       "com.propensive" %% "mercator" % "0.3.0",
       "ch.epfl.scala" %% "bsp-testkit" % bspVersion % Test,
@@ -27,8 +27,8 @@ val bspPlugin = (project in file("."))
       "com.novocode" % "junit-interface" % "0.11" % Test,
       ("ch.epfl.scala" % "bsp4j" % bspVersion)
         .exclude("com.google.code.gson", "gson") // included in IDEA platform
-        .exclude("com.google.guava", "guava"), // included in IDEA platform
+        .exclude("com.google.guava", "guava") // included in IDEA platform
     ),
-    intellijPlugins += "com.intellij.java".toPlugin,
+    intellijPlugins += "com.intellij.java".toPlugin
   )
   .enablePlugins(SbtIdeaPlugin)

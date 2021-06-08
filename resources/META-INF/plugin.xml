@@ -12,7 +12,7 @@
     </description>
     <version>VERSION</version>
     <vendor url="https://www.jetbrains.com">JetBrains</vendor>
-    <idea-version since-build="203.5981.41" until-build="211.*"/>
+    <idea-version since-build="203.5981.41" until-build="212.*"/>
     <depends>com.intellij.modules.java</depends>
     <depends optional="true" config-file="BSP-JUnit.xml">JUnit</depends>
 
