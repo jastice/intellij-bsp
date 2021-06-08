@@ -16,9 +16,8 @@ import org.jetbrains.plugins.bsp.util.extensions.ProjectExt
 import org.jetbrains.plugins.bsp.settings.{BspProjectSettings, BspSettings}
 
 /**
-  * Builds bsp modules on file save. We should change this to support the bsp file change notifications.
- * TODO IDEA platform already supports a save-triggered build-in-background mode. Investigate if we can replace this service.
-  */
+ * Builds bsp modules on file save. We should change this to support the bsp file change notifications.
+ */
 final class BspBuildLoopService(project: Project) {
 
   private def bspSettings: Option[BspProjectSettings] =
@@ -44,9 +43,9 @@ final class BspBuildLoopService(project: Project) {
     private var lastChangeTimestamp: Long = 0
 
     /** Delays compilation just a little bit so that it's less likely that multiple builds are triggered for one
-      * set of changes. */
+     * set of changes. */
     private var scheduledCompile: ScheduledFuture[_] =
-      AppExecutorUtil.getAppScheduledExecutorService.schedule[Unit](()=>(), 0, TimeUnit.NANOSECONDS)
+      AppExecutorUtil.getAppScheduledExecutorService.schedule[Unit](() => (), 0, TimeUnit.NANOSECONDS)
 
     private def checkCompile(): Unit = {
       val now = System.nanoTime()
@@ -72,6 +71,7 @@ final class BspBuildLoopService(project: Project) {
 
     override def updateFile(file: VirtualFile, event: VFileEvent): Unit =
       fileChanged(file, event)
+
     override def deleteFile(file: VirtualFile, event: VFileEvent): Unit =
       fileChanged(file, event)
 
@@ -111,6 +111,7 @@ final class BspBuildLoopService(project: Project) {
       case _ => false
     }
   }
+
 }
 
 object BspBuildLoopService {
