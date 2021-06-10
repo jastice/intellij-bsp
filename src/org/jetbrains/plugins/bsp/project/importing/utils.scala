@@ -1,6 +1,7 @@
 package org.jetbrains.plugins.bsp.project.importing
 
 import com.intellij.openapi.vfs.VirtualFile
+import coursier.{Fetch, dependencyString}
 import org.jetbrains.plugins.bsp.util.Version
 import org.jetbrains.plugins.bsp.util.extensions.VirtualFileExt
 
@@ -8,6 +9,7 @@ import java.io.{BufferedInputStream, File, FileInputStream}
 import java.util.Properties
 import java.util.jar.JarFile
 import scala.util.Using
+
 
 object utils {
 
@@ -20,6 +22,11 @@ object utils {
     val ProjectDirectory = "project"
     val PropertiesFile = "build.properties"
     val SbtFileExtension = "sbt"
+
+    val sbtLauncher: File = Fetch()
+      .addDependencies(dep"org.scala-sbt:sbt-launch:1.4.6")
+      .run()
+      .head
 
     def canImport(file: VirtualFile): Boolean = file match {
       case null => false
@@ -38,14 +45,15 @@ object utils {
             containsSbtBuildFile(projectDirectory)
       }
 
-
-
     def detectSbtVersion(directory: File, sbtLauncher: => File): Version =
       sbtVersionIn(directory)
         .orElse(sbtVersionInBootPropertiesOf(sbtLauncher))
         .orElse(readManifestAttributeFrom(sbtLauncher, "Implementation-Version"))
         .map(Version.apply)
         .getOrElse(LatestVersion)
+
+    def sbtVersionParam(sbtVersion: Version): String =
+      s"-Dsbt.version=$sbtVersion"
 
     def isSbtFile(file: VirtualFile): Boolean =
       file.getExtension == SbtFileExtension
@@ -74,8 +82,6 @@ object utils {
       if (version < latestInSeries) latestInSeries
       else version
     }
-
-    def getLauncher: File = ??? // FIXME implement getting a launcher. download on demand via coursier?
 
     private val MayUpgradeSbtVersion = Version("0.13.0")
 
@@ -143,6 +149,8 @@ object utils {
         properties.load(input)
         Option(properties.getProperty(name))
       }
+
+    def normalizePath(file: File): String = file.getAbsolutePath.replace('\\', '/')
 
   }
 }
