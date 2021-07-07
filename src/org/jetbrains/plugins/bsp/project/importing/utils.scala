@@ -28,6 +28,16 @@ object utils {
       .run()
       .head
 
+    val bloopLauncherDir: String = Fetch()
+      .addDependencies(dep"ch.epfl.scala:bloop-launcher_2.12:1.4.5")
+      .run()
+      .head.getParentFile.getName
+
+    val scalaLibraryDir: String = Fetch()
+      .addDependencies(dep"org.scala-lang:scala-library:2.12.12")
+      .run()
+      .head.getParentFile.getName
+
     def canImport(file: VirtualFile): Boolean = file match {
       case null => false
       case directory if directory.isDirectory =>
@@ -151,6 +161,5 @@ object utils {
       }
 
     def normalizePath(file: File): String = file.getAbsolutePath.replace('\\', '/')
-
   }
 }
